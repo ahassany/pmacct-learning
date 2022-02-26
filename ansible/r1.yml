@@ -3,13 +3,5 @@
   hosts: all
   roles:
     - role: frr
-      tags: frr_common
-
-
-- name: Apt install FRR
-  tags: frr_common
-  apt:
-    name: frr
-    state: latest
-  become: true
+    - role: ipfix
 ...

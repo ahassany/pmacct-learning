@@ -1,0 +1,14 @@
+- name: Update APT cache
+  tags: apt_common
+  apt:
+    update_cache: yes
+  become: true
+
+
+
+- name: Apt install IPFIX kernel module
+  tags: ipfix
+  apt:
+    name: iptables-netflow-dkms
+    state: latest
+  become: true
