@@ -5,10 +5,68 @@
   become: true
 
 
-
-- name: Apt install IPFIX kernel module
-  tags: ipfix
+- name: Installing deps
   apt:
-    name: iptables-netflow-dkms
+    name:
+      - module-assistant
+      - libxtables-dev
+      - libc6-dev
+      - iptables
+      - nfdump
+      - dkms
+      - snmpd
+      - libsnmp-dev
     state: latest
+  become: true
+
+- name: Checkout iptables NETFLOW kernel module git repo
+  ansible.builtin.git:
+    repo: 'https://github.com/aabc/ipt-netflow.git'
+    dest: '/home/vagrant/ipt-netflow'
+
+- name: configure
+  shell:
+    cmd: ./configure
+    chdir: '/home/vagrant/ipt-netflow'
+
+- name: make
+  shell:
+    cmd: make all
+    chdir: '~/ipt-netflow'
+
+- name: make install
+  shell:
+    cmd: make install
+    chdir: '/home/vagrant/ipt-netflow'
+  become: true
+
+- name: Enable netflow for snmp
+  shell:
+    cmd: "echo 'dlmod netflow /usr/lib/snmp/dlmod/snmp_NETFLOW.so' >> dlmod netflow /usr/lib/snmp/dlmod/snmp_NETFLOW.so"
+    chdir: '/home/vagrant/ipt-netflow'
+  become: true
+
+
+- name: Create /etc/modprobe.d/ipt_NETFLOW.conf
+  template:
+    src: "ipt_NETFLOW.conf.j2"
+    dest: /etc/modprobe.d/ipt_NETFLOW.conf
+  become: true
+
+- name: Load ipt_NETFLOW module
+  shell:
+    cmd: "modprobe ipt_NETFLOW"
+    chdir: '/home/vagrant/ipt-netflow'
+  become: true
+
+- name: Copy the Iptable libs
+  shell:
+    cmd: 'cp libip*.so /usr/lib/x86_64-linux-gnu/xtables/'
+    chdir: '/home/vagrant/ipt-netflow'
+  become: true
+
+- name: Enable iptables netflow rules
+  shell:
+    cmd: 'iptables -I FORWARD -j NETFLOW; iptables -I INPUT -j NETFLOW; iptables -I OUTPUT -j NETFLOW'
+    chdir: '/home/vagrant/ipt-netflow'
   become: true
