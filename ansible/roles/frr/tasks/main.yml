@@ -21,18 +21,11 @@
 - name: Apt install FRR
   tags: frr_common
   apt:
-    name: frr
+    name: 
+      - frr
+      - frr-pythontools
     state: latest
   become: true
-
-
-- name: Apt install FRR python
-  tags: frr_common
-  apt:
-    name: frr-pythontools
-    state: latest
-  become: true
-
 
 - name: Set sysctl options
   tags: frr_common
