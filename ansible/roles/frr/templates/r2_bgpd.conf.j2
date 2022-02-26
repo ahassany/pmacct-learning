@@ -1,0 +1,21 @@
+
+!
+log monitor informational
+log syslog informational
+!
+!
+route-map ALLOW-ALL permit 100
+!
+router bgp 200
+ bgp router-id 172.16.0.200
+ neighbor 172.16.0.100 remote-as 100
+ !
+ address-family ipv4 unicast
+  network 172.16.2.0/24
+  neighbor 172.16.0.100 soft-reconfiguration inbound
+  neighbor 172.16.0.100 route-map ALLOW-ALL in
+  neighbor 172.16.0.100 route-map ALLOW-ALL out
+ exit-address-family
+!
+line vty
+log commands

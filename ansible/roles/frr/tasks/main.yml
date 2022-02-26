@@ -1,0 +1,96 @@
+- name: Add GPG key for FRR
+  tags: frr_common
+  ansible.builtin.apt_key:
+    url: "https://deb.frrouting.org/frr/keys.asc"
+    state: present
+  become: true
+
+- name: Add Deb repo for FRR
+  tags: frr_common
+  ansible.builtin.apt_repository:
+    repo: deb https://deb.frrouting.org/frr focal frr-stable
+    state: present
+  become: true
+
+- name: Update APT cache
+  tags: frr_common
+  apt:
+    update_cache: yes
+  become: true
+
+- name: Apt install FRR
+  tags: frr_common
+  apt:
+    name: frr
+    state: latest
+  become: true
+
+
+- name: Apt install FRR python
+  tags: frr_common
+  apt:
+    name: frr-pythontools
+    state: latest
+  become: true
+
+
+- name: Set sysctl options
+  tags: frr_common
+  template:
+    src: 99-sysctl.conf.j2
+    dest: /etc/sysctl.d/99-frr.conf
+  become: true
+
+
+- name: Reload sysctl files
+  tags: frr_common
+  shell: /sbin/sysctl -p /etc/sysctl.d/99-frr.conf
+  become: true
+
+
+- name: Configure frr vtysh config file
+  tags: frr_common
+  template:
+    src: vtysh.conf.j2
+    dest: /etc/frr/vtysh.conf
+  become: yes
+
+
+- name: Create /etc/frr/bgpd.conf
+  template:
+    src: "{{ ansible_hostname}}_bgpd.conf.j2"
+    dest: /etc/frr/bgpd.conf
+  become: true
+
+
+- name: Configure premissions for bgpd.conf
+  ansible.builtin.file:
+    path: /etc/frr/bgpd.conf
+    state: file
+    owner: frr
+    group: frr
+  become: true
+
+
+- name: Enable bgpd in /etc/frr/daemons
+  tags: frr_bgp_common
+  lineinfile:
+    path: /etc/frr/daemons
+    regexp: '^bgpd='
+    line: bgpd=yes
+  become: true
+
+
+- name: Delete the default frr.conf
+  ansible.builtin.file:
+    path: /etc/frr/frr.conf
+    state: absent
+  become: true
+
+
+- name: Restart FRR service
+  ansible.builtin.service:
+    name: frr
+    state: restarted
+    enabled: yes
+  become: true
