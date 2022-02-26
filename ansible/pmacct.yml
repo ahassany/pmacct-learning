@@ -1,0 +1,7 @@
+---
+- name: pmacct provision
+  hosts: all
+  roles:
+    - role: pmacct
+    - role: ipfix
+...

@@ -1,0 +1,109 @@
+- name: Update APT cache
+  tags: apt_common
+  apt:
+    update_cache: yes
+  become: true
+
+
+- name: Add GPG key for Confluent
+  tags: frr_common
+  ansible.builtin.apt_key:
+    url: "https://packages.confluent.io/deb/7.0/archive.key"
+    state: present
+  become: true
+
+- name: Add Confluent's main deb repo
+  tags: frr_common
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64] https://packages.confluent.io/deb/7.0 stable main
+    state: present
+  become: true
+
+- name: Add Confluent's ubuntu focal main deb repo
+  tags: frr_common
+  ansible.builtin.apt_repository:
+    repo: deb https://packages.confluent.io/clients/deb focal main
+    state: present
+  become: true
+
+
+- name: Update APT cache
+  tags: apt_common
+  apt:
+    update_cache: yes
+  become: true
+
+
+- name: Installing AVRO deps
+  apt:
+    name:
+      #- avro-bin
+      #- libavro-dev
+      - libavro-c1
+      - libavro-c-dev
+      - confluent-libserdes1
+      - confluent-libserdes-dev
+      - librdkafka1
+      - librdkafka-dev
+      - librdkafka1-dbg
+    state: latest
+  become: true
+
+
+- name: Checkout pmacct git repo
+  ansible.builtin.git:
+    repo: 'https://github.com/pmacct/pmacct.git'
+    dest: '~/pmacct'
+
+
+- name: Installing pmacct deps
+  apt:
+    name:
+      - libpcap-dev
+      - pkg-config
+      - libtool
+      - autoconf
+      - automake
+      - make
+      - bash
+      - g++
+      - libjansson-dev 
+      - libcurl4-gnutls-dev
+      - cmake
+    state: latest
+  become: true
+
+
+- name: Get Apached avro from dist
+  shell:
+    cmd: wget https://archive.apache.org/dist/avro/avro-1.9.2/c/avro-c-1.9.2.tar.gz
+    chdir: '/tmp'
+
+
+- name: Manually install Apached avro from dist
+  shell:
+    cmd: 'tar xfz avro-c-1.9.2.tar.gz; cd avro-c-1.9.2 ; mkdir build ; cd build ; cmake .. ; make ; sudo make install'
+    chdir: '/tmp'
+
+- name: Autogen
+  shell:
+    cmd: ./autogen.sh
+    chdir: '~/pmacct'
+
+- name: Run pmacct configure
+  shell:
+    cmd: ./configure --enable-kafka --enable-jansson --enable-avro --enable-serdes
+    chdir: '~/pmacct'
+
+
+- name: Run pmacct make
+  shell:
+    cmd: make
+    chdir: '~/pmacct'
+
+
+- name: Run pmacct make install
+  shell:
+    cmd: make install
+    chdir: '/home/vagrant/pmacct'
+  become: yes
