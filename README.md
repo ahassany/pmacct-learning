@@ -1,0 +1,1 @@
+Simple Lab environment with Vagrant to lunch some nodes running FRRouting, and with the https://github.com/aabc/ipt-netflow kernel module to collect IPFIX from the routers. Also lunches pmacct instance.
