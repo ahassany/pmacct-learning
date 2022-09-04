@@ -1,21 +1,43 @@
-
+log file /var/log/bgpd.log
+log stdout
+log syslog
 !
-log monitor informational
-log syslog informational
+debug bgp keepalives
+debug bgp neighbor-events
+debug bgp updates in
+debug bgp updates out
 !
 !
-route-map ALLOW-ALL permit 100
 !
 router bgp 100
- bgp router-id 172.16.0.100
- neighbor 172.16.0.200 remote-as 200
+ bgp router-id 172.16.0.10
+ bgp log-neighbor-changes
+ no bgp ebgp-requires-policy
+ neighbor 172.16.0.20 remote-as 200
+ neighbor 172.16.0.30 remote-as 300
+ neighbor 172.16.1.11 remote-as 100
+ neighbor 192.168.56.1 remote-as 600
  !
  address-family ipv4 unicast
   network 172.16.1.0/24
-  neighbor 172.16.0.200 soft-reconfiguration inbound
-  neighbor 172.16.0.200 route-map ALLOW-ALL in
-  neighbor 172.16.0.200 route-map ALLOW-ALL out
+  neighbor 172.16.0.20 soft-reconfiguration inbound
+  neighbor 172.16.0.20 route-map ALLOW-ALL in
+  neighbor 172.16.0.20 route-map ALLOW-ALL out
+  neighbor 172.16.0.30 soft-reconfiguration inbound
+  neighbor 172.16.0.30 route-map ALLOW-ALL in
+  neighbor 172.16.0.30 route-map ALLOW-ALL out
+  neighbor 192.168.56.1 soft-reconfiguration inbound
+  neighbor 192.168.56.1 route-map ALLOW-ALL in
+  neighbor 192.168.56.1 route-map ALLOW-ALL out
  exit-address-family
 !
-line vty
+exit
+!
+!
+!
+route-map ALLOW-ALL permit 100
+exit
+!
+!
 log commands
+!
